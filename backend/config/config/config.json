@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "12345Abcd@",
+    "database": "sdms",
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "${DB_USER}",
+    "password": "${DB_PASS}",
+    "database": "${DB_NAME}_test",
+    "host": "${DB_HOST}",
+  "port": 5432,
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "${DB_USER}",
+    "password": "${DB_PASS}",
+    "database": "${DB_NAME}",
+    "host": "${DB_HOST}",
+  "port": 5432,
+    "dialect": "postgres"
+  }
+}
