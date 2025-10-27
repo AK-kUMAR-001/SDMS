@@ -6,14 +6,14 @@ const Sequelize = require('sequelize');
 const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.cjs')[env];
+const config = require('../../config/config/config.cjs');
 const db = {};
 
 let sequelize;
 if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+  sequelize = new Sequelize(process.env[config.use_env_variable], config[env]);
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  sequelize = new Sequelize(config[env].database, config[env].username, config[env].password, config[env]);
 }
 
 fs
@@ -28,6 +28,7 @@ fs
     );
   })
   .forEach(file => {
+    console.log(`Loading model from file: ${file}`);
     const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
     db[model.name] = model;
   });
@@ -35,6 +36,7 @@ fs
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
+    console.log(`Associating model: ${modelName}`);
     db[modelName].associate(db);
   }
 });

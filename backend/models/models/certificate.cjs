@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Certificate.belongsTo(models.User, { foreignKey: 'studentId' });
+      // Certificate.belongsTo(models.User, { foreignKey: 'studentId' });
     }
   }
   Certificate.init({

@@ -1,6 +1,8 @@
 // JWT authentication middleware
 const jwt = require('jsonwebtoken');
 
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
+
 function authenticateJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader) {

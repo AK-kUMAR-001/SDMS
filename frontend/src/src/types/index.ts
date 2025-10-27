@@ -5,6 +5,7 @@ export interface User {
   role: "admin" | "dean" | "hod" | "faculty" | "student";
   department: string;
   status: "active" | "inactive";
+  token?: string; // Add this line
 }
 
 export type CertificateType = "course" | "webinar" | "workshop" | "internship" | "project" | "other";

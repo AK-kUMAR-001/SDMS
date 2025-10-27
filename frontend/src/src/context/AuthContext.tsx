@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User } from '../types';
-import { users as mockUsers } from '../api/mockData';
+import { toast } from 'sonner';
+import { localDB } from '../lib/localDB';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
-  login: (email: string, password?: string) => User | null;
+  login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -25,14 +26,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user]);
 
-  const login = (email: string, password?: string): User | null => {
-    // NOTE: Password is ignored in this mock implementation.
-    const foundUser = mockUsers.find(u => u.email === email);
-    if (foundUser) {
-      setUser(foundUser);
-      return foundUser;
+  const login = async (email: string, password?: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${localDB.baseUrl}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Login failed');
+        return false;
+      }
+
+      const data = await response.json();
+      setUser({ ...data.user, token: data.token });
+      toast.success('Login successful!');
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('An unexpected error occurred during login.');
+      return false;
     }
-    return null;
   };
 
   const logout = () => {

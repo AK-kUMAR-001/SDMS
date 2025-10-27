@@ -10,9 +10,9 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      User.belongsToMany(models.Role, { through: models.UserRole, foreignKey: 'userId' });
-      User.hasOne(models.StudentProfile, { foreignKey: 'userId' });
-      User.hasMany(models.Certificate, { foreignKey: 'studentId' });
+      // User.belongsToMany(models.Role, { through: models.UserRole, foreignKey: 'userId' });
+      // User.hasOne(models.StudentProfile, { foreignKey: 'userId' });
+      // User.hasMany(models.Certificate, { foreignKey: 'studentId' });
     }
   }
   User.init({
@@ -25,5 +25,8 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'User',
   });
+  console.log('User model initialized.');
   return User;
 };
+
+console.log('User model file loaded.');

@@ -15,11 +15,11 @@ const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteProps) =
   const { user } = useAuth();
   const { roles, permissions } = useData();
 
-  if (!user) {
-    return <Navigate to="/login" />;
+  if (!user || !user.role) {
+    return <Navigate to="/unauthorized" />;
   }
 
-  const userRole = roles.find(r => r.name.toLowerCase() === user.role.toLowerCase());
+  const userRole = roles.find(r => user.role && r.name.toLowerCase() === user.role.toLowerCase());
   const userPermissions = userRole?.permissions.map(pId => permissions.find(p => p.id === pId)).filter(Boolean) ?? [];
 
   const hasPermission = (action: string, subject: string) => {
