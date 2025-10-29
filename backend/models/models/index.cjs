@@ -10,10 +10,32 @@ const config = require('../../config/config/config.cjs');
 const db = {};
 
 let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config[env]);
-} else {
-  sequelize = new Sequelize(config[env].database, config[env].username, config[env].password, config[env]);
+try {
+  if (config.use_env_variable) {
+    sequelize = new Sequelize(process.env[config.use_env_variable], config[env]);
+  } else {
+    console.log(`Connecting to database: ${config[env].database} on ${config[env].host}:${config[env].port}`);
+    sequelize = new Sequelize(
+      config[env].database,
+      config[env].username,
+      config[env].password,
+      {
+        ...config[env],
+        logging: console.log, // Enable SQL logging for debugging
+        pool: {
+          max: 5,
+          min: 0,
+          acquire: 30000,
+          idle: 10000
+        }
+      }
+    );
+  }
+  
+  console.log('✅ Sequelize instance created successfully');
+} catch (error) {
+  console.error('❌ Failed to create Sequelize instance:', error.message);
+  throw error;
 }
 
 fs

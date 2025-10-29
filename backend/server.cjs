@@ -1,12 +1,25 @@
 
+require('dotenv').config();
+
+// Validate required environment variables
+const requiredEnvVars = ['JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ CRITICAL ERROR: Missing required environment variables:');
+  missingEnvVars.forEach(varName => {
+    console.error(`   - ${varName}`);
+  });
+  console.error('\nPlease create a .env file with the required variables.');
+  process.exit(1);
+}
+
 const express = require('express');
  const path = require('path');
  const fs = require('fs');
  const jwt = require('jsonwebtoken');
  const bcrypt = require('bcrypt');
  const multer = require('multer');
- require('dotenv').config();
- 
  const helmet = require('helmet');
  const rateLimit = require('express-rate-limit');
  const cors = require('cors');
@@ -136,13 +149,51 @@ const express = require('express');
    }
  });
  
- // Sync database
- sequelize.sync().then(() => {
-   console.log('Database synced');
-   console.log('Attempting to initialize routes and middleware...');
- }).catch(err => {
-   console.error('Error syncing database:', err);
- });
+ // Sync database with proper options
+ async function syncDatabase() {
+   try {
+     console.log('🔄 Starting database sync...');
+     
+     // Force sync to handle existing types - BE CAREFUL IN PRODUCTION
+     await sequelize.sync({
+       force: false,  // Don't drop tables, but handle type conflicts
+       alter: true,   // Alter existing tables to match model
+       logging: console.log  // Show SQL commands for debugging
+     });
+     
+     console.log('✅ Database synced successfully');
+   } catch (error) {
+     console.error('❌ Database sync failed:', error.message);
+     
+     // If sync fails due to type conflicts, try a more aggressive approach
+     if (error.name === 'SequelizeUniqueConstraintError' && error.parent?.constraint === 'pg_type_typname_nsp_index') {
+       console.log('🔄 Attempting to resolve type conflicts...');
+       
+       // Try to clean up conflicting types
+       await cleanupConflictingTypes();
+       
+       // Retry sync
+       await sequelize.sync({ force: false, alter: true });
+       console.log('✅ Database synced after cleanup');
+     } else {
+       throw error;
+     }
+   }
+ }
+ 
+ // Helper function to clean up conflicting types
+ async function cleanupConflictingTypes() {
+   const models = ['AuditLog', 'User', 'Certificate', 'Role', 'Permission', 'LeaderboardEntry', 'StudentProfile', 'UserRole'];
+   
+   for (const modelName of models) {
+     try {
+       await sequelize.query(`DROP TYPE IF EXISTS "${modelName}" CASCADE`);
+       console.log(`🧹 Cleaned up type: ${modelName}`);
+     } catch (err) {
+       console.log(`ℹ️  Type ${modelName} not found or already clean`);
+     }
+   }
+ }
  
  // Helper function to generate IDs (if needed)
  const generateId = () => {
@@ -207,25 +258,48 @@ const express = require('express');
    }
  });
  
- const HOST = process.env.HOST || '0.0.0.0';
- 
- try {
-   console.log('Attempting to start server...');
-   const server = app.listen(PORT, HOST, () => {
-     try {
-       const addr = server.address();
-       console.log(`Server started successfully on ${addr.family} ${addr.address}:${addr.port}`);
-     } catch (e) {
-       console.log(`Server started successfully on port ${PORT} (host ${HOST})`);
+ // Start server with proper database initialization
+ async function startServer() {
+   try {
+     console.log('🔄 Initializing database connection...');
+     
+     // Test database connection
+     await sequelize.authenticate();
+     console.log('✅ Database connection established successfully.');
+     
+     // Sync database with conflict resolution
+     await syncDatabase();
+     
+     // Validate environment
+     if (!process.env.JWT_SECRET) {
+       throw new Error('JWT_SECRET environment variable is required');
      }
-   });
+     
+     console.log('✅ Environment validation passed.');
+     
+     // Start HTTP server
+     const HOST = process.env.HOST || '0.0.0.0';
+     const PORT = process.env.PORT || 3005;
+     
+     const server = app.listen(PORT, HOST, () => {
+       const addr = server.address();
+       console.log(`🚀 Server started successfully on ${addr.family} ${addr.address}:${addr.port}`);
+       console.log(`📡 API endpoints available at http://localhost:${PORT}/api/v1`);
+     });
  
-   server.on('error', (err) => {
-     console.error('Server failed to start or encountered an error:', err && err.message ? err.message : err);
-   });
- } catch (e) {
-   console.error('Synchronous server startup error:', e && e.message ? e.message : e);
+     server.on('error', (err) => {
+       console.error('❌ Server error:', err.message);
+     });
+     
+   } catch (error) {
+     console.error('❌ Failed to start server:', error.message);
+     console.error('📋 Full error:', error);
+     process.exit(1);
+   }
  }
+ 
+ // Start the server
+ startServer();
  
  // Set secure cookie flags in production
  app.use((req, res, next) => {

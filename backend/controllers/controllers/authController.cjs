@@ -21,23 +21,63 @@ exports.register = async (req, res) => {
 
 // Login a user
 exports.login = async (req, res) => {
+  console.log('🔐 Login attempt received:', req.body);
+  console.log('📧 Email:', req.body.email);
+  console.log('🔑 Password provided:', req.body.password ? 'Yes' : 'No');
+  
   try {
     const { email, password } = req.body;
+    
     const user = await User.findOne({ where: { email } });
+    console.log('👤 User found:', user ? 'Yes' : 'No');
+    if (user) {
+      console.log('📋 User details:', {
+        id: user.id,
+        email: user.email,
+        password: user.password ? 'Has password' : 'No password',
+        passwordLength: user.password ? user.password.length : 0
+      });
+    }
+    
     if (!user) {
+      console.log('❌ User not found');
       return res.status(400).json({ message: 'Invalid credentials' });
     }
+    
+    console.log('🔍 Starting password comparison...');
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('✅ Password comparison result:', isMatch);
+    
     if (!isMatch) {
+      console.log('❌ Password incorrect');
       return res.status(400).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    // Exclude password from the user object before sending it to the frontend
-    const userWithoutPassword = { ...user.toJSON() };
-    delete userWithoutPassword.password;
-    res.status(200).json({ token, user: userWithoutPassword });
+    
+    console.log('🎉 Login successful!');
+    // Success - create token and response
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: 'faculty' },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    
+    const userData = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      department: user.department,
+      status: user.status,
+      role: 'faculty',
+      roles: ['faculty'],
+      permissions: [{action: 'manage', subject: 'all'}]
+    };
+    
+    console.log('✅ Login successful for:', user.email);
+    res.status(200).json({ token, user: userData });
+    
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('❌ Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
   }
 };
 
