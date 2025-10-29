@@ -5,12 +5,18 @@ module.exports = {
     await queryInterface.createTable('leaderboardentries', {
       id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4
       },
       studentId: {
-        type: Sequelize.INTEGER
+        type: Sequelize.UUID,
+        references: {
+          model: 'Users',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
       },
       rank: {
         type: Sequelize.INTEGER

@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'roleId',
         as: 'users'
       });
-      
+
       // Role has many Permissions (through RolePermissions)
       if (models.Permission && models.RolePermission) {
         Role.belongsToMany(models.Permission, {
@@ -21,10 +21,10 @@ module.exports = (sequelize, DataTypes) => {
       }
     }
   }
-  
+
   Role.init({
     id: {
-      type: DataTypes.UUID,  // ✅ Changed from INTEGER to UUID
+      type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
     },
@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'Roles',
     timestamps: true
   });
-  
+
   console.log('✅ Role model initialized.');
   return Role;
 };

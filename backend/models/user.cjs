@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     }
   }
-  
+
   User.init({
     id: {
       type: DataTypes.UUID,
@@ -60,24 +60,6 @@ module.exports = (sequelize, DataTypes) => {
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
-    },
-    roleId: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      references: {
-        model: 'Roles',
-        key: 'id'
-      }
-    },
-    role: {
-      type: DataTypes.STRING,
-      allowNull: true
-      // Note: This is redundant with roleId, but exists in DB
-    },
-    permissions: {
-      type: DataTypes.JSONB,
-      allowNull: true,
-      defaultValue: []
     }
   }, {
     sequelize,
@@ -85,7 +67,7 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'Users',
     timestamps: true
   });
-  
+
   console.log('✅ User model initialized.');
   return User;
 };

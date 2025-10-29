@@ -234,6 +234,19 @@ const express = require('express');
  // Use audit log routes
  const auditLogRoutes = require('./routes/routes/auditLogRoutes.cjs');
  app.use('/api/v1/audit-logs', auditLogRoutes);
+
+ // Use role routes
+ const roleRoutes = require('./routes/routes/roleRoutes.cjs');
+ app.use('/api/v1/roles', roleRoutes);
+
+ // Use permission routes
+ const permissionRoutes = require('./routes/routes/permissionRoutes.cjs');
+ app.use('/api/v1/permissions', permissionRoutes);
+
+ // Use email routes
+ const emailRoutes = require('./routes/routes/emailRoutes.cjs');
+ app.use('/api/v1/email', emailRoutes);
+
  // No update or delete endpoints for audit logs (immutable)
  
  // Serve the React app for any non-API routes
@@ -269,14 +282,20 @@ const express = require('express');
      
      // Sync database with conflict resolution
      await syncDatabase();
-     
+
      // Validate environment
      if (!process.env.JWT_SECRET) {
        throw new Error('JWT_SECRET environment variable is required');
      }
-     
+
      console.log('✅ Environment validation passed.');
-     
+
+     // Seed initial roles and permissions
+     const seedRolesPermissions = require('./seeders/20251020135953-seed-roles-permissions.cjs');
+     await seedRolesPermissions.up(sequelize.getQueryInterface());
+
+     console.log('✅ Initial roles and permissions seeded.');
+
      // Start HTTP server
      const HOST = process.env.HOST || '0.0.0.0';
      const PORT = process.env.PORT || 3005;

@@ -14,7 +14,9 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   LeaderboardEntry.init({
-    studentId: DataTypes.INTEGER,
+    studentId: {
+      type: DataTypes.UUID
+    },
     rank: DataTypes.INTEGER,
     points: DataTypes.INTEGER
   }, {

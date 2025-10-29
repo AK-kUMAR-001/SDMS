@@ -14,11 +14,25 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   StudentProfile.init({
-    userId: DataTypes.INTEGER,
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
+    },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id'
+      }
+    },
     points: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'StudentProfile',
+    tableName: 'StudentProfiles',
+    timestamps: true
   });
   return StudentProfile;
 };

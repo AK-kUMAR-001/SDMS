@@ -31,15 +31,6 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: true
       },
-      roleId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'Roles',
-          key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
-      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

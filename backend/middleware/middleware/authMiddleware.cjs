@@ -31,6 +31,8 @@ function authenticateJWT(req, res, next) {
       
       console.log('✅ JWT verified successfully for user:', user.id);
       req.user = user;
+      req.user.roles = user.roles || []; // Attach roles to req.user
+      req.user.permissions = user.permissions || []; // Attach permissions to req.user
       next();
     });
   } else {
@@ -39,4 +41,12 @@ function authenticateJWT(req, res, next) {
   }
 }
 
-module.exports = { authenticateJWT };
+// Placeholder for authorize function
+function authorize(requiredPermissions, requiredRoles) {
+  return (req, res, next) => {
+    // For now, just allow access. We can implement actual authorization logic later.
+    next();
+  };
+}
+
+module.exports = { authenticateJWT, authorize };
